@@ -16,7 +16,16 @@ object ClimateService {
    * @param description "my awesome sentence contains a key word like climate change"
    * @return Boolean True
    */
-  def isClimateRelated(description: String): Boolean = ???
+  def isClimateRelated(description: String): Boolean = {
+    val keywords = List("global warming", "IPCC", "climate change")
+    val lowDescription = description.toLowerCase
+    for (word <- keywords) {
+      if (lowDescription.contains(word.toLowerCase)) {
+        return true
+      }
+    }
+    false
+  }
 
   /**
    * parse a list of raw data and transport it with type into a list of CO2Record
@@ -26,8 +35,14 @@ object ClimateService {
    * you can access to Tuple with myTuple._1, myTuple._2, myTuple._3
    */
   def parseRawData(list: List[(Int, Int, Double)]) : List[Option[CO2Record]] = {
-    list.map { record => ??? }
-    ???
+    list.map {
+      case (year, month, ppm) =>
+        if (ppm>0) {
+          Some (CO2Record(year, month, ppm))
+        } else {
+          None
+        }
+    }
   }
 
   /**
@@ -36,15 +51,35 @@ object ClimateService {
    * @param list
    * @return a list
    */
-  def filterDecemberData(list: List[Option[CO2Record]]) : List[CO2Record] = ???
+  def filterDecemberData(list: List[Option[CO2Record]]) : List[CO2Record] = {
+    val filteredList = for {
+      Some(record) <- list //Filter the None values
+      if record.month != 12 //Filter (remove) December records
+    } yield record
+    filteredList
+  }
 
 
   /**
    * **Tips**: look at the read me to find some tips for this function
    */
-  def getMinMax(list: List[CO2Record]) : (Double, Double) = ???
+  def getMinMax(list: List[CO2Record]) : (Double, Double) = {
+    // map the input
+    // the goal is to only extract ppm values from each CO2 record object and find the minimum
+    val min = list.map(record => record.ppm).min
+    //map the imput list to extract only the ppm values from each CO2Record and find the minimum.
+    val max = list.map(record => record.ppm).max
+    //Return a tuple containing the minimum and maximum values
+    (min, max)
+  }
 
-  def getMinMaxByYear(list: List[CO2Record], year: Int) : (Double, Double) = ???
+  def getMinMaxByYear(list: List[CO2Record], year: Int) : (Double, Double) = {
+    //Filter the list to only include CO2Record
+    val min = list.filter(record => record.year == year).map(record => record.ppm).min
+    val max = list.filter(record => record.year == year).map(record => record.ppm).max
+    //Return a tuple containing the minimum and maximum ppm values
+    (min, max)
+  }
 
   /**
    * use this function side src/main/scala/com/polomarcus/main/Main (with sbt run)
